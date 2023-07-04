@@ -28,7 +28,7 @@ class Absorber(object):
         Add dataset for absorber factor determination from overlaps.
         """
         self._data.append((int(abs_value+0.05), qz, intensity))
-        
+    
     def calculate_from_overlaps(self):
         temp = {}
         zero_test = 0
@@ -38,13 +38,13 @@ class Absorber(object):
             for m in range(len(self._data)):
                 abs_value_a, qz_a, intensity_a = self._data[m]
                 if abs_value_a == abs_value - 1 and zero_test == 0:
+                    
                     fit_mask = numpy.where(qz >= qz_a[0])[0]
                     if fit_mask.size == 1:
                         fit_mask = numpy.append(numpy.array([fit_mask[0]-1]), fit_mask)
                     fit_mask_a = numpy.where(qz_a <= qz[len(qz)-1])[0]
                     if fit_mask_a.size == 1:
                         fit_mask_a = numpy.append(fit_mask_a, numpy.array([1]))
-                    
                     x_1, x_2, y_1, y_2 = symfit.variables('x_1, x_2, y_1, y_2')
                     a_1, b_1, c_1, u = symfit.parameters('a_1, b_1, c_1, u')
                     globalmodel = symfit.Model({
@@ -52,7 +52,7 @@ class Absorber(object):
                         y_2: (a_1+b_1*x_2+c_1*x_2**2)*u
                     })
                     
-                    globalfit = symfit.Fit(globalmodel, x_1 = qz[fit_mask], x_2 = qz_a[fit_mask_a], y_1 = intensity[fit_mask], y_2 = intensity_a[fit_mask_a])
+                    globalfit = symfit.Fit(globalmodel, x_1 = numpy.array(qz)[fit_mask], x_2 = numpy.array(qz_a)[fit_mask_a], y_1 = numpy.array(intensity)[fit_mask], y_2 = numpy.array(intensity_a)[fit_mask_a])
                     globalfit_result = globalfit.execute()
                     
                     if abs_value not in temp:
@@ -61,6 +61,7 @@ class Absorber(object):
                     
                     if abs_value_a == 0:
                         zero_test =+ 1
+        
         result = {n: temp[n][0] for n in temp.keys()}
         print(result)
         self._values.update(result)
